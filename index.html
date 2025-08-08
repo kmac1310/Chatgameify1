@@ -2,261 +2,145 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>1440TIME™ – On‑Time Token Allocator</title>
+  <title>1440time On Time Allocator</title>
   <style>
-    :root {
-      --bg:#0b0b0e; --panel:#121219; --ink:#e9fdfb; --muted:#9be6da;
-      --good:#46f0a2; --warn:#ffc857; --bad:#ff5e5b; --brand:#00ffd0; --gold:#ffd166;
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #121212;
+      color: #f5f5f5;
+      padding: 20px;
     }
-    *{box-sizing:border-box}
-    body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial}
-    header{padding:20px 16px;border-bottom:1px solid #1d1d29;background:#0e0e14;position:sticky;top:0;z-index:2}
-    h1{margin:0;font-size:20px;color:var(--gold)}
-    main{max-width:960px;margin:0 auto;padding:20px 16px;display:grid;gap:16px}
-    .card{background:var(--panel);border:1px solid #1b1b27;border-radius:14px;padding:16px}
-    .row{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px}
-    label{font-size:12px;color:var(--muted);display:block;margin-bottom:6px}
-    input,select{width:100%;padding:10px 12px;border-radius:10px;border:1px solid #24243a;background:#0e0e16;color:var(--ink)}
-    button{appearance:none;border:none;border-radius:12px;padding:10px 14px;background:var(--brand);color:#001511;font-weight:700;cursor:pointer}
-    button.ghost{background:#1a1a25;color:var(--ink);border:1px solid #2a2a3f}
-    .stat{display:flex;align-items:baseline;gap:10px}
-    .stat big{font-size:28px;font-weight:800}
-    .grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    .totals{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
-    .pill{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;border:1px solid #2a2a3f}
-    .pill.good{border-color:var(--good);color:var(--good)}
-    .pill.neutral{border-color:#6c7790;color:#a2adc7}
-    .pill.bad{border-color:var(--bad);color:var(--bad)}
-    .list{display:grid;gap:8px;margin-top:10px;max-height:320px;overflow:auto}
-    .item{display:grid;grid-template-columns:80px 1fr 110px 36px;gap:8px;align-items:center;padding:10px;border:1px solid #232338;border-radius:10px;background:#0f0f18}
-    .right{justify-self:end}
-    .mono{font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace}
-    .hint{color:#aab4cf;font-size:12px}
-    .warn{color:var(--warn)}
-    .progress{width:100%;height:10px;background:#0e0e16;border:1px solid #232338;border-radius:999px;overflow:hidden}
-    .progress>span{display:block;height:100%;background:linear-gradient(90deg,#1ff2b7,#3cfad8);width:0%}
-    .chips{display:flex;gap:8px;flex-wrap:wrap}
+    .card {
+      background-color: #1e1e1e;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+    }
+    .btn {
+      padding: 10px 15px;
+      margin: 5px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      background-color: #333;
+      color: #fff;
+    }
+    .btn:hover {
+      background-color: #555;
+    }
+    .tag {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 14px;
+      margin-left: 5px;
+    }
+    .PT { background-color: #3333aa; color: white; }
+    .PTP { background-color: #00cc66; color: white; }
+    .Leisure { background-color: #aa3333; color: white; }
+    .scoreBox { margin-top: 10px; font-weight: bold; }
+    input, select {
+      padding: 8px;
+      margin: 5px;
+      border-radius: 5px;
+      border: none;
+    }
   </style>
 </head>
 <body>
-  <header>
-    <h1>1440TIME™ • On‑Time Token Allocator</h1>
-    <div class="hint">Start fresh every day. Hours for sleep & work → the rest is On‑Time (minutes).</div>
-  </header>
-  <main>
-    <!-- STEP 1: DAY SETUP -->
-    <section class="card">
-      <div class="row">
-        <div>
-          <label>Sleep (hours)</label>
-          <input id="sleepH" type="number" min="0" step="0.25" placeholder="e.g. 7" />
-        </div>
-        <div>
-          <label>Work (hours, door‑to‑door)</label>
-          <input id="workH" type="number" min="0" step="0.25" placeholder="e.g. 8" />
-        </div>
-        <div>
-          <label>Annual Salary (optional, $)</label>
-          <input id="salary" type="number" min="0" step="1000" placeholder="e.g. 200000" />
-        </div>
-      </div>
-      <div class="row" style="margin-top:10px">
-        <div class="stat">
-          <div class="pill neutral">Sleep</div>
-          <big class="mono" id="sleepMin">0</big><span class="hint">min</span>
-        </div>
-        <div class="stat">
-          <div class="pill neutral">Work</div>
-          <big class="mono" id="workMin">0</big><span class="hint">min</span>
-        </div>
-        <div class="stat">
-          <div class="pill good">On‑Time</div>
-          <big class="mono" id="onTimeMin">0</big><span class="hint">min left</span>
-        </div>
-        <div class="stat">
-          <div class="pill neutral">$ / work‑min</div>
-          <big class="mono" id="dpm">$0.00</big>
-        </div>
-      </div>
-      <div class="progress" style="margin-top:10px"><span id="onTimeBar"></span></div>
-      <div class="chips" style="margin-top:12px">
-        <button class="ghost" onclick="quickSet(7,8)">Quick: 7h sleep • 8h work</button>
-        <button class="ghost" onclick="quickSet(8,9)">Quick: 8h sleep • 9h work</button>
-      </div>
-    </section>
+  <h1>1440time On Time Allocator</h1>
 
-    <!-- STEP 2: QUICK BIG ROCKS (optional helpers) -->
-    <section class="card">
-      <h2 style="margin:0 0 8px">Big Rocks (one‑tap adds)</h2>
-      <div class="chips">
-        <button class="ghost" onclick="addEntry(90,'Gym (PTP)', 'PTP')">+90 Gym (PTP)</button>
-        <button class="ghost" onclick="addEntry(60,'Dinner & Cleanup', 'PT')">+60 Dinner</button>
-        <button class="ghost" onclick="addEntry(30,'Read / Study', 'PTP')">+30 Read/Study</button>
-        <button class="ghost" onclick="addEntry(15,'Walk / Reset', 'PT')">+15 Walk</button>
-      </div>
-      <div class="hint" style="margin-top:6px">You can also add anything manually below.</div>
-    </section>
+  <!-- ✅ Fixed Time Expenses -->
+  <div class="card">
+    <h2>Fixed Time Expenses (one-tap log)</h2>
+    <div id="fixedTimeButtons"></div>
+    <p style="font-size: 0.85em;">These are the non-negotiables—time you need to spend. Tap one, then assign minutes below manually.</p>
+  </div>
 
-    <!-- STEP 3: ADD AN ACTIVITY (PTP / 1440X / PT / Leisure) -->
-    <section class="card">
-      <div class="grid-2">
-        <div>
-          <label>Minutes (On‑Time)</label>
-          <input id="minutes" type="number" min="1" placeholder="e.g. 45" />
-        </div>
-        <div>
-          <label>Category</label>
-          <select id="category">
-            <option value="PTP">PTP – Power Time Plus (x3)</option>
-            <option value="1440X">1440X – PTP with AI (x10)</option>
-            <option value="PT">PT – Maintenance / chores (x0)</option>
-            <option value="Leisure">Leisure / Entertainment (−1)</option>
-          </select>
-        </div>
-      </div>
-      <label>Description (optional)</label>
-      <input id="desc" type="text" placeholder="What did you do?" />
-      <div class="chips" style="margin-top:10px">
-        <button onclick="addFromForm()">Add Entry</button>
-        <button class="ghost" onclick="resetEntries()">Clear Entries</button>
-      </div>
-    </section>
+  <div class="card">
+    <input type="number" id="minutes" placeholder="e.g. 45">
+    <select id="category">
+      <option value="PTP">PTP — Power Time Plus (x3)</option>
+      <option value="1440X">1440X — Critical Moment (x10)</option>
+      <option value="PT">PT — Power Time</option>
+      <option value="Leisure">Leisure</option>
+    </select>
+    <input type="text" id="description" placeholder="What did you do? (optional)">
+    <button class="btn" onclick="addEntry()">Add Entry</button>
+    <button class="btn" onclick="clearEntries()">Clear Entries</button>
+  </div>
 
-    <!-- STEP 4: LEDGER + TOTALS -->
-    <section class="card">
-      <div class="totals">
-        <div><div class="pill good">PTP</div><div class="mono" id="tPTP">0 min • 0 score</div></div>
-        <div><div class="pill good">1440X</div><div class="mono" id="tX">0 min • 0 score</div></div>
-        <div><div class="pill neutral">PT</div><div class="mono" id="tPT">0 min • 0 score</div></div>
-        <div><div class="pill bad">Leisure</div><div class="mono" id="tL">0 min • 0 score</div></div>
-      </div>
-      <div style="margin-top:10px" class="stat">
-        <div class="pill">Remaining On‑Time</div>
-        <big class="mono" id="remain">0</big><span class="hint">min</span>
-        <span id="remainWarn" class="warn"></span>
-      </div>
-      <div class="list" id="list"></div>
-    </section>
-
-    <!-- STEP 5: END OF DAY SUMMARY -->
-    <section class="card">
-      <div class="grid-2">
-        <div>
-          <div class="pill good">Daily Token Score</div>
-          <div class="mono" id="dailyScore">0</div>
-        </div>
-        <div>
-          <div class="pill">Truth Report</div>
-          <div class="hint" id="truth">Start your day by allocating big rocks. Protect your PTP.</div>
-        </div>
-      </div>
-    </section>
-  </main>
+  <div class="card" id="logCard">
+    <h3>Time Log</h3>
+    <div id="logEntries"></div>
+    <div class="scoreBox" id="scoreBox"></div>
+  </div>
 
   <script>
-    const $ = id => document.getElementById(id);
-    let entries = []; // fresh every day – no persistence
+    const fixedTimePresets = [
+      { label: 'Eating / Cooking', description: 'Eating / Cooking', category: 'PT' },
+      { label: 'Home Maintenance', description: 'Home Maintenance', category: 'PT' },
+      { label: 'Kids / Family Care', description: 'Kids / Family Care', category: 'PT' },
+      { label: 'TV / Social Media', description: 'TV / Social Media', category: 'PT' },
+      { label: 'Money / Bills', description: 'Money / Bills', category: 'PT' },
+      { label: 'Fun Time / Hangout', description: 'Fun Time / Hangout', category: 'PT' }
+    ];
 
-    function clamp(n){return isFinite(n)&&n>0?n:0}
+    const entries = [];
 
-    function recalc() {
-      const sleepH = clamp(parseFloat($("sleepH").value));
-      const workH  = clamp(parseFloat($("workH").value));
-      const salary = clamp(parseFloat($("salary").value));
+    function renderFixedTimeButtons() {
+      const container = document.getElementById('fixedTimeButtons');
+      fixedTimePresets.forEach(item => {
+        const btn = document.createElement('button');
+        btn.className = 'btn';
+        btn.innerText = item.label;
+        btn.onclick = () => {
+          document.getElementById('category').value = item.category;
+          document.getElementById('description').value = item.description;
+        };
+        container.appendChild(btn);
+      });
+    }
 
-      const sleepMin = Math.round(sleepH*60);
-      const workMin  = Math.round(workH*60);
-      const onTime   = Math.max(0, 1440 - sleepMin - workMin);
+    function addEntry() {
+      const minutes = parseInt(document.getElementById('minutes').value);
+      const category = document.getElementById('category').value;
+      const description = document.getElementById('description').value || 'No Description';
 
-      $("sleepMin").textContent = sleepMin;
-      $("workMin").textContent  = workMin;
-      $("onTimeMin").textContent= onTime;
-      $("onTimeBar").style.width = (onTime/1440*100).toFixed(1)+"%";
-
-      // $/work-minute if salary present (days/week * weeks/year * hours/day)
-      let dpm = 0;
-      if (salary && workH) {
-        // assume 5d/wk, 50 w/yr for simple daily calc display only
-        const workMinutesYear = 5*50*workH*60;
-        dpm = workMinutesYear? salary / workMinutesYear : 0;
-      }
-      $("dpm").textContent = "$" + dpm.toFixed(2);
-
-      // Totals by category
-      const totals = {PTP:{min:0,score:0}, X:{min:0,score:0}, PT:{min:0,score:0}, Leisure:{min:0,score:0}};
-      for(const e of entries){
-        const mult = (e.cat==="PTP"?3:(e.cat==="1440X"?10:(e.cat==="PT"?0:-1)));
-        const key = e.cat==="1440X"?"X":e.cat;
-        totals[key].min += e.min;
-        totals[key].score += e.min * mult;
-      }
-      $("tPTP").textContent = `${totals.PTP.min} min • ${totals.PTP.score} score`;
-      $("tX").textContent   = `${totals.X.min} min • ${totals.X.score} score`;
-      $("tPT").textContent  = `${totals.PT.min} min • ${totals.PT.score} score`;
-      $("tL").textContent   = `${totals.Leisure.min} min • ${totals.Leisure.score} score`;
-
-      const used = entries.reduce((s,e)=>s+e.min,0);
-      const remain = Math.max(0, onTime - used);
-      $("remain").textContent = remain;
-      $("remainWarn").textContent = used>onTime?`⚠️ Over by ${used-onTime} min` : "";
-
-      // Score & truth
-      const dailyScore = totals.PTP.score + totals.X.score + totals.PT.score + totals.Leisure.score;
-      $("dailyScore").textContent = dailyScore;
-      if (used===0) {
-        $("truth").textContent = "Tokens fade at midnight. Spend some on purpose now.";
-      } else if (totals.X.min>0) {
-        $("truth").textContent = "1440X active. You’re compounding minutes with AI. Keep going.";
-      } else if (totals.PTP.min>= (onTime*0.5)) {
-        $("truth").textContent = "Majority of On‑Time on PTP. Identity is compounding.";
-      } else if (totals.Leisure.min> (onTime*0.4)) {
-        $("truth").textContent = "Leisure is dominating. Reclaim a 30‑minute PTP block now.";
-      } else {
-        $("truth").textContent = "Strong pace. Protect one more PTP block today.";
+      if (isNaN(minutes) || minutes <= 0) {
+        alert('Please enter a valid number of minutes.');
+        return;
       }
 
-      renderList();
+      const multiplier = category === 'PTP' ? 3 : category === '1440X' ? 10 : 1;
+      const score = minutes * multiplier;
+      entries.push({ minutes, category, description, score });
+      renderEntries();
     }
 
-    function addEntry(min, desc, cat){
-      min = clamp(parseInt(min));
-      if(!min) return;
-      entries.push({min, desc: (desc||"").trim(), cat});
-      recalc();
+    function clearEntries() {
+      entries.length = 0;
+      renderEntries();
     }
 
-    function addFromForm(){
-      const min = $("minutes").value;
-      const cat = $("category").value;
-      const desc = $("desc").value;
-      addEntry(min, desc, cat);
-      $("minutes").value = ""; $("desc").value = ""; $("category").value = "PTP";
+    function renderEntries() {
+      const container = document.getElementById('logEntries');
+      container.innerHTML = '';
+      let totalScore = 0;
+      let totalMinutes = 0;
+
+      entries.forEach(entry => {
+        const div = document.createElement('div');
+        div.innerHTML = `${entry.minutes} min — ${entry.description} <span class="tag ${entry.category}">${entry.category}</span>`;
+        container.appendChild(div);
+        totalScore += entry.score;
+        totalMinutes += entry.minutes;
+      });
+
+      document.getElementById('scoreBox').innerText = `Total On-Time Used: ${totalMinutes} min | Token Score: ${totalScore}`;
     }
 
-    function deleteEntry(idx){ entries.splice(idx,1); recalc(); }
-
-    function renderList(){
-      const box = $("list");
-      box.innerHTML = entries.map((e,i)=>{
-        const tag = e.cat==="1440X"?`<span class='pill good'>1440X</span>`:
-                    e.cat==="PTP"?`<span class='pill good'>PTP</span>`:
-                    e.cat==="PT"?`<span class='pill neutral'>PT</span>`:
-                    `<span class='pill bad'>Leisure</span>`;
-        return `<div class="item">
-            <div class="mono">${e.min} min</div>
-            <div class="mono">${e.desc||"—"}</div>
-            <div class="right">${tag}</div>
-            <button class="ghost" onclick="deleteEntry(${i})">✖</button>
-        </div>`
-      }).join("");
-    }
-
-    function quickSet(s,w){ $("sleepH").value=s; $("workH").value=w; recalc(); }
-
-    // Recalc on input changes
-    ["sleepH","workH","salary"].forEach(id=> $(id).addEventListener('input', recalc));
-    recalc();
+    renderFixedTimeButtons();
   </script>
 </body>
 </html>
